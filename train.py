@@ -100,5 +100,26 @@ def recommend_by_knn(movie, top_items):
     indexes = list(knn.kneighbors([vector], top_items + 1, return_distance=False)[0])
     return list(df.iloc[indexes]['title'])[1:]
 
-# the first row is the movie itself and the rest are recommendations
-recommend_by_knn('Friends', 10)
+def jaccard_similarity(set1, set2):
+    intersection = set1.intersection(set2)
+    union = set1.union(set2)
+    return len(intersection) / len(union)
+
+jaccard_similarities = []
+
+for movie_title in df['title'][:100]:
+    true_movie_genres = set(df[df['title'] == movie_title]['listed_in'].values[0])
+    
+    recommended_movies = recommend_by_knn(movie_title, 10)
+    recommended_movie_genres = [set(df[df['title'] == movie]['listed_in'].values[0]) for movie in recommended_movies]
+    
+    similarities = [jaccard_similarity(true_movie_genres, rec_genres) for rec_genres in recommended_movie_genres]
+    avg_jaccard_similarity = sum(similarities) / len(similarities)
+    
+    jaccard_similarities.append(avg_jaccard_similarity)
+
+average_jaccard_similarity = sum(jaccard_similarities) / len(jaccard_similarities)
+print(f"Average Jaccard similarity: {average_jaccard_similarity:.4f}")
+
+with open("metrics.txt", "w") as outfile:
+    outfile.write("Average Jaccard similarity: " + str(average_jaccard_similarity) + "\n")
