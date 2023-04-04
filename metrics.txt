@@ -1,0 +1,1 @@
+Average Jaccard similarity: 0.8683202042070426
